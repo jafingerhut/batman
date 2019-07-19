@@ -38,18 +38,18 @@ that.
 Here are some relevant facts to be aware of, distilled from references
 linked below:
 
-* The IEEE 754 specification requires these behaviors, which Java
-  includes in its language specification, and I have not seen a Java
-  implementation yet that violates any of this:
- * If NaN is at least one operand of a floating point operation like
-   `+` `-` `*` `/`, the result is NaN.
- * If NaN is at least one operand of an arithmetic equality or
-   inequality comparison, the result must be false.  This makes `<=`
-   _not_ a total order if you include NaN values.  It is a total order
-   if you leave out NaN's.
+* The IEEE 754 specification requires these behaviors below, which
+  Java includes in its language specification, and I have not seen a
+  Java implementation yet that violates any of this:
+  * If NaN is at least one operand of a floating point operation like
+    `+` `-` `*` `/`, the result is NaN.
+  * If NaN is at least one operand of an arithmetic equality or
+    inequality comparison, the result must be false.  This makes `<=`
+    _not_ a total order if you include NaN values.  It is a total
+    order if you leave out NaN's.
 * This is part of the Java language specification.  I do not yet know
   whether IEEE 754 requires it.
- * `NaN != NaN` is true!
+  * `NaN != NaN` is true!
 * The Java `==` and `!=` operators, when comparing primitive double or
   float values, is defined to behave as described above.
 * The Java `==` and `!=` operators can also be used to compare
@@ -62,17 +62,17 @@ linked below:
   with `==`.
 * The Java method `equals` on Double objects is defined to return true
   when comparing two Double objects containing NaN.
- * This fact seems not very relevant to the Clojure 1.10.1
-  implementation behavior, as it seems that the Java `equals` method
-  is not used for Double objects by Clojure.  It is mentioned here
-  primarily as a counterpoint to anyone who thinks that Java always
-  gives the same answer for all ways of comparing NaN values to other
-  things -- it does not.  Its behavior of `==` for primitive double
-  values is based upon the IEEE 754 specification, and its behavior of
-  `equals` for Double objects seems to have an exception for
-  `(Double.NaN).equals(Double.NaN)` guided by the desire to be able to
-  use `Double.NaN` as a key in a hash table that uses the Java
-  `equals` method for key equality, and be able to look it up later.
+  * This fact seems not very relevant to the Clojure 1.10.1
+   implementation behavior, as it seems that the Java `equals` method
+   is not used for Double objects by Clojure.  It is mentioned here
+   primarily as a counterpoint to anyone who thinks that Java always
+   gives the same answer for all ways of comparing NaN values to other
+   things -- it does not.  Its behavior of `==` for primitive double
+   values is based upon the IEEE 754 specification, and its behavior
+   of `equals` for Double objects seems to have an exception for
+   `(Double.NaN).equals(Double.NaN)` guided by the desire to be able
+   to use `Double.NaN` as a key in a hash table that uses the Java
+   `equals` method for key equality, and be able to look it up later.
 * Clojure often uses "boxed" Double objects to represent
   double-precision floating point numbers, but also has optimizations
   in several places to represent them as Java variables/fields with
