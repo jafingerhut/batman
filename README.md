@@ -41,15 +41,15 @@ linked below:
 * The IEEE 754 specification requires these behaviors, which Java
   includes in its language specification, and I have not seen a Java
   implementation yet that violates any of this:
-** If NaN is at least one operand of a floating point operation like
+ * If NaN is at least one operand of a floating point operation like
    `+` `-` `*` `/`, the result is NaN.
-** If NaN is at least one operand of an arithmetic equality or
+ * If NaN is at least one operand of an arithmetic equality or
    inequality comparison, the result must be false.  This makes `<=`
    _not_ a total order if you include NaN values.  It is a total order
    if you leave out NaN's.
 * This is part of the Java language specification.  I do not yet know
   whether IEEE 754 requires it.
-** `NaN != NaN` is true!
+ * `NaN != NaN` is true!
 * The Java `==` and `!=` operators, when comparing primitive double or
   float values, is defined to behave as described above.
 * The Java `==` and `!=` operators can also be used to compare
@@ -62,7 +62,7 @@ linked below:
   with `==`.
 * The Java method `equals` on Double objects is defined to return true
   when comparing two Double objects containing NaN.
-** This fact seems not very relevant to the Clojure 1.10.1
+ * This fact seems not very relevant to the Clojure 1.10.1
   implementation behavior, as it seems that the Java `equals` method
   is not used for Double objects by Clojure.  It is mentioned here
   primarily as a counterpoint to anyone who thinks that Java always
