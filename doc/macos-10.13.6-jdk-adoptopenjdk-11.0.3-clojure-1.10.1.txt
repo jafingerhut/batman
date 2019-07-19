@@ -1,0 +1,309 @@
+----------------------------------------
+x=> (identical? Double/NaN Double/NaN)
+false
+
+Every time the Clojure reader reads Double/NaN, it returns a new Java
+object of type Double.  identical? only returns true if two Java
+objects are the same one in memory, but these are not.
+----------------------------------------
+x=> (identical? ##NaN ##NaN)
+true
+
+At least in Clojure 1.10.1, the Clojure reader returns the same
+identical Java object every time it reads the expression ##NaN.  Thus
+two occurrences of them are identical.
+----------------------------------------
+x=> (identical? ##NaN Double/NaN)
+false
+
+Given the above results, you should not be surprised that these
+objects are not the same one in memory.
+----------------------------------------
+x=> (.equals Double/NaN Double/NaN)
+true
+
+When the equals method of Java's class Double is passed a value of
+Double.NaN to compare it against, the Java documentation clearly says
+that equals returns true:
+
+https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Double.html#equals(java.lang.Object)
+
+I am not so clear why that documentation says: 'This definition allows
+hash tables to operate properly.'
+----------------------------------------
+x=> (.equals ##NaN ##NaN)
+true
+
+Same result as previous one, for the same reason.  It does not matter
+whether the two Double objects are the same one in memory or not for
+the equals method.
+----------------------------------------
+x=> (.equals ##NaN Double/NaN)
+true
+
+Same as previous one.
+----------------------------------------
+x=> (.equals ##NaN Float/NaN)
+false
+
+Float.NaN is a different class of object than Double.NaN, so Java
+equals returns false here.
+----------------------------------------
+x=> (= Double/NaN Double/NaN)
+false
+
+This causes the method clojure.lang.Util/equiv(double, double) to be called,
+which compares the two primitive double values using the Java ==
+operator, which returns false.
+
+According to the Java Language Specification section 15.21.1
+'Numerical Equality Operators == and !=' linked below, if either
+operand of the Java == operator is NaN, the result is false.
+Interestingly, it also specifies that the value of the expression 'NaN
+!= NaN' is true!
+
+https://docs.oracle.com/javase/specs/jls/se7/html/jls-15.html#jls-15.21.1
+----------------------------------------
+x=> (clojure.lang.Util/equiv Double/NaN Double/NaN)
+false
+
+This is just the Clojure Java interop expression that calls the same
+method as the previous example.  It returns the same result for the
+same reason.
+----------------------------------------
+x=> (apply = [Double/NaN Double/NaN])
+false
+
+Calls clojure.lang.Util.equiv(Object, Object), which is different
+than the method called due to (= Double/NaN Double/NaN) because that
+expression is inlined by the Clojure compiler.  See the :inline key in
+the definition of function = in the Clojure core.clj source file.
+
+The calls go in this order:
+
+clojure.core/=
+clojure.lang.Util.equiv(Object, Object)
+clojure.lang.Numbers.equal(Number, Number)
+clojure.lang.DoubleOps.equiv(Number, Number)
+
+which evaluates the expression (x.doubleValue() == y.doubleValue()),
+which is (Double.NaN == Double.NaN), which is false.
+----------------------------------------
+x=> (apply = [##NaN ##NaN])
+false
+
+Same sequence of calls and same return value as the previous case.
+----------------------------------------
+x=> (= ##NaN ##NaN)
+false
+
+This case calls clojure.lang.Util.equiv(double, double) just like (=
+Double/NaN Double/NaN) does.
+----------------------------------------
+x=> (= ##NaN Double/NaN)
+false
+
+Same as previous case.
+----------------------------------------
+x=> (not= ##NaN ##NaN)
+false
+
+clojure.lang.Util.equiv(Object, Object) which takes true branch on if
+condition (k1 == k2) because ##NaN are all identical? to each other,
+and equiv() returns true.  Then not= function takes that result and
+negates it to false.
+----------------------------------------
+x=> ((var =) ##NaN ##NaN)
+true
+
+Performs the same calls as previous case, except since there is no
+not= function involved, clojure.core/= returns true.
+----------------------------------------
+x=> (apply = [##NaN ##NaN])
+false
+
+TBD: Why does this case not take the same if (k1 == k2) true branch
+that (#'= ##NaN ##NaN) does?  I do not understand what is different
+here, unless somewhere the Clojure compiler is creating new Double
+objects while constructing the vector object, perhaps?
+
+Call sequence:
+
+clojure.core/apply
+clojure.core/=
+clojure.lang.Util.equiv(Object, Object)
+clojure.lang.Numbers.equal(Number, Number)
+clojure.lang.DoubleOps.equiv(Number, Number)
+
+which evaluates the expression (x.doubleValue() == y.doubleValue()),
+which is (Double.NaN == Double.NaN), which is false.
+----------------------------------------
+x=> (apply not= [##NaN ##NaN])
+true
+
+TBD: Similarly weird as for (apply = [##NaN ##NaN]), and except for
+not= negating the return from false to true, everything is the same
+between them.
+----------------------------------------
+x=> (apply not= ##NaN [##NaN])
+true
+
+TBD: Similarly weird as for (apply = [##NaN ##NaN]), and except for
+not= negating the return from false to true, everything is the same
+between them.
+----------------------------------------
+x=> (apply not= ##NaN ##NaN [])
+false
+
+Call trace:
+
+clojure.core/not=
+clojure.core/=
+clojure.lang.Util.equiv(Object, Object)
+Takes the true branch of if (k1 == k2) statement, returning true.
+
+Then not= negates to false.
+
+This is most similar to (not= ##NaN ##NaN) case.
+----------------------------------------
+x=> (not= Double/NaN Double/NaN)
+true
+
+First calls clojure.core/not=, then the same sequence of method calls
+as for the expression (apply = [Double/NaN Double/NaN]) above.  That
+returns false, then not= negates it to return true.
+----------------------------------------
+x=> ((var =) Double/NaN Double/NaN)
+false
+
+Same sequence of calls as for (apply = [Double/NaN Double/NaN]))
+above, and same return value.
+----------------------------------------
+x=> (= Double/NaN Double/NaN)
+false
+
+clojure.lang.Util.equiv(double, double) returns false.
+----------------------------------------
+x=> (== Double/NaN Double/NaN)
+false
+
+All arithmetic comparison operations between NaN and a normal double
+number return false.
+
+This matches Java's behavior in the Java Language Specification
+section 15.20.1 'Numerical Comparison Operators <, <=, >, >=', which
+says that it is determined by the IEEE 754 standard.
+
+https://docs.oracle.com/javase/specs/jls/se7/html/jls-15.html#jls-15.20.1
+----------------------------------------
+x=> (< Double/NaN 5.0)
+false
+
+See (== Double/NaN Double/NaN) above
+----------------------------------------
+x=> (< 5.0 Double/NaN)
+false
+
+See (== Double/NaN Double/NaN) above
+----------------------------------------
+x=> (<= Double/NaN 5.0)
+false
+
+See (== Double/NaN Double/NaN) above
+----------------------------------------
+x=> (<= 5.0 Double/NaN)
+false
+
+See (== Double/NaN Double/NaN) above
+----------------------------------------
+x=> (> Double/NaN 5.0)
+false
+
+See (== Double/NaN Double/NaN) above
+----------------------------------------
+x=> (> 5.0 Double/NaN)
+false
+
+See (== Double/NaN Double/NaN) above
+----------------------------------------
+x=> (>= Double/NaN 5.0)
+false
+
+See (== Double/NaN Double/NaN) above
+----------------------------------------
+x=> (>= 5.0 Double/NaN)
+false
+
+See (== Double/NaN Double/NaN) above
+----------------------------------------
+x=> (+ 5.0 ##NaN)
+##NaN
+
+All unary and binary arithmetic operations between NaN and a normal
+double number return NaN.
+
+This matches Java's behavior in the Java Language Specification
+sections listed below, which say that it is determined by the IEEE 754
+standard.
+
+https://docs.oracle.com/javase/specs/jls/se7/html/jls-15.html#jls-15.15.4
+https://docs.oracle.com/javase/specs/jls/se7/html/jls-15.html#jls-15.17.1
+https://docs.oracle.com/javase/specs/jls/se7/html/jls-15.html#jls-15.17.2
+https://docs.oracle.com/javase/specs/jls/se7/html/jls-15.html#jls-15.18.2
+----------------------------------------
+x=> (+ ##NaN)
+##NaN
+
+See (+ 5.0 ##NaN) above
+----------------------------------------
+x=> (+ ##NaN 5.0)
+##NaN
+
+See (+ 5.0 ##NaN) above
+----------------------------------------
+x=> (- 5.0 ##NaN)
+##NaN
+
+See (+ 5.0 ##NaN) above
+----------------------------------------
+x=> (- ##NaN 5.0)
+##NaN
+
+See (+ 5.0 ##NaN) above
+----------------------------------------
+x=> (- ##NaN)
+##NaN
+
+See (+ 5.0 ##NaN) above
+----------------------------------------
+x=> (* 5.0 ##NaN)
+##NaN
+
+See (+ 5.0 ##NaN) above
+----------------------------------------
+x=> (* ##NaN 5.0)
+##NaN
+
+See (+ 5.0 ##NaN) above
+----------------------------------------
+x=> (/ 5.0 ##NaN)
+##NaN
+
+See (+ 5.0 ##NaN) above
+----------------------------------------
+x=> (/ ##NaN 5.0)
+##NaN
+
+See (+ 5.0 ##NaN) above
+
+Number of unexpected results: 0
+os.arch   x86_64
+os.name   Mac OS X
+os.version   10.13.6
+java.vendor   AdoptOpenJDK
+java.version   11.0.3
+java.vm.vendor   AdoptOpenJDK
+java.vm.name   OpenJDK 64-Bit Server VM
+java.vm.version   11.0.3+7
+java.runtime.version   11.0.3+7
+clojure-version 1.10.1

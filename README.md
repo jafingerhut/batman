@@ -15,6 +15,9 @@ To run some Clojure code tests in this repository:
 $ clojure -m batman.nan
 ```
 
+There are some sample output files produced by this program [in the
+`doc` directory](doc).
+
 
 ## NaN is weird
 
