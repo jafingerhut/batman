@@ -6,6 +6,12 @@ in Java and Clojure.
 I give credit for the name of this project to Gary Bernhardt's
 [delightful "Wat" talk](https://www.destroyallsoftware.com/talks/wat).
 
+And for another weird bit of fun, note that the bit representation of
+NaNs in the IEEE 754 standard contains lots of bits that can have any
+value, so you can use them to store data.  Don't try this anywhere
+except at home:
+[sneaky_NaNs.clj](https://gist.github.com/gfredericks/af951e56680127f10eb8).
+
 
 ## Usage
 
