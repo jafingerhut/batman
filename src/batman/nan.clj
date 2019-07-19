@@ -123,13 +123,29 @@ operand of the Java == operator is NaN, the result is false.
 Interestingly, it also specifies that the value of the expression 'NaN
 != NaN' is true!
 
-https://docs.oracle.com/javase/specs/jls/se7/html/jls-15.html#jls-15.21.1")
+https://docs.oracle.com/javase/specs/jls/se7/html/jls-15.html#jls-15.21.1
+
+Return value is in agreement with Property 1.
+
+'Property 1' below is not some rule that programming languages must
+follow, necessarily.  It is simply a name I am giving here for a
+condition that can be used to categorize the results of evaluating
+Clojure expressions.  There are other ways to categorize these
+results, of course, so do not necessarily take 'satisfies Property 1'
+to mean 'operating correctly' and 'violates Property 1' to mean
+'operating incorrectly'.
+
+Property 1: Calls to Clojure `=` or `==` involving at least one NaN
+return false, whether the call is inlined or not.  Calls to Clojure
+`not=` involving at least one NaN return true.")
 
   (show (expect-= false) (clojure.lang.Util/equiv Double/NaN Double/NaN))
   (println
 "This is just the Clojure Java interop expression that calls the same
 method as the previous example.  It returns the same result for the
-same reason.")
+same reason.
+
+Return value is in agreement with Property 1.")
 
   (show (expect-= false) (apply = [Double/NaN Double/NaN]))
   (println
@@ -146,32 +162,44 @@ clojure.lang.Numbers.equal(Number, Number)
 clojure.lang.DoubleOps.equiv(Number, Number)
 
 which evaluates the expression (x.doubleValue() == y.doubleValue()),
-which is (Double.NaN == Double.NaN), which is false.")
+which is (Double.NaN == Double.NaN), which is false.
+
+Return value is in agreement with Property 1.")
 
   (show (expect-= false) (apply = [##NaN ##NaN]))
   (println
-"Same sequence of calls and same return value as the previous case.")
+"Same sequence of calls and same return value as the previous case.
+
+Return value is in agreement with Property 1.")
 
   (show (expect-= false) (= ##NaN ##NaN))
   (println
 "This case calls clojure.lang.Util.equiv(double, double) just like (=
-Double/NaN Double/NaN) does.")
+Double/NaN Double/NaN) does.
+
+Return value is in agreement with Property 1.")
   
   (show (expect-= false) (= ##NaN Double/NaN))
   (println
-"Same as previous case.")
+"Same as previous case.
+
+Return value is in agreement with Property 1.")
 
   (show (expect-= false) (not= ##NaN ##NaN))
   (println
 "clojure.lang.Util.equiv(Object, Object) which takes true branch on if
 condition (k1 == k2) because ##NaN are all identical? to each other,
 and equiv() returns true.  Then not= function takes that result and
-negates it to false.")
+negates it to false.
+
+Return value violates Property 1.")
 
   (show (expect-= true) (#'= ##NaN ##NaN))
   (println
 "Performs the same calls as previous case, except since there is no
-not= function involved, clojure.core/= returns true.")
+not= function involved, clojure.core/= returns true.
+
+Return value violates Property 1.")
 
   (show (expect-= false) (apply = [##NaN ##NaN]))
   (println
@@ -189,19 +217,25 @@ clojure.lang.Numbers.equal(Number, Number)
 clojure.lang.DoubleOps.equiv(Number, Number)
 
 which evaluates the expression (x.doubleValue() == y.doubleValue()),
-which is (Double.NaN == Double.NaN), which is false.")
+which is (Double.NaN == Double.NaN), which is false.
+
+Return value is in agreement with Property 1.")
 
   (show (expect-= true) (apply not= [##NaN ##NaN]))
   (println
 "TBD: Similarly weird as for (apply = [##NaN ##NaN]), and except for
 not= negating the return from false to true, everything is the same
-between them.")
+between them.
+
+Return value is in agreement with Property 1.")
 
   (show (expect-= true) (apply not= ##NaN [##NaN]))
   (println
 "TBD: Similarly weird as for (apply = [##NaN ##NaN]), and except for
 not= negating the return from false to true, everything is the same
-between them.")
+between them.
+
+Return value is in agreement with Property 1.")
 
   (show (expect-= false) (apply not= ##NaN ##NaN []))
   (println
@@ -214,22 +248,30 @@ Takes the true branch of if (k1 == k2) statement, returning true.
 
 Then not= negates to false.
 
-This is most similar to (not= ##NaN ##NaN) case.")
+This is most similar to (not= ##NaN ##NaN) case.
+
+Return value violates Property 1.")
 
   (show (expect-= true) (not= Double/NaN Double/NaN))
   (println
 "First calls clojure.core/not=, then the same sequence of method calls
 as for the expression (apply = [Double/NaN Double/NaN]) above.  That
-returns false, then not= negates it to return true.")
+returns false, then not= negates it to return true.
+
+Return value is in agreement with Property 1.")
   
   (show (expect-= false) (#'= Double/NaN Double/NaN))
   (println
 "Same sequence of calls as for (apply = [Double/NaN Double/NaN]))
-above, and same return value.")
+above, and same return value.
+
+Return value is in agreement with Property 1.")
 
   (show (expect-= false) (= Double/NaN Double/NaN))
   (println
-"clojure.lang.Util.equiv(double, double) returns false.")
+"clojure.lang.Util.equiv(double, double) returns false.
+
+Return value is in agreement with Property 1.")
 
   )
 
