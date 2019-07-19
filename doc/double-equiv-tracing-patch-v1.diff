@@ -1,0 +1,105 @@
+diff --git a/src/jvm/clojure/lang/Numbers.java b/src/jvm/clojure/lang/Numbers.java
+index fa13cba6..e6dab73a 100644
+--- a/src/jvm/clojure/lang/Numbers.java
++++ b/src/jvm/clojure/lang/Numbers.java
+@@ -243,6 +243,13 @@ static public boolean equiv(Number x, Number y){
+ }
+ 
+ static public boolean equal(Number x, Number y){
++    if ((x instanceof Double) || (y instanceof Double)) {
++	System.out.println("clojure.lang.Numbers.equal(" +
++			   "Number " + x + "(" + (x.getClass()) + ")" +
++			   ", " +
++			   "Number " + y + "(" + (y.getClass()) + ")" +
++			   ") returning tbd");
++    }
+ 	return category(x) == category(y)
+ 			&& ops(x).combine(ops(y)).equiv(x, y);
+ }
+@@ -679,6 +686,20 @@ final static class DoubleOps extends OpsP{
+ 	}
+ 
+ 	public boolean equiv(Number x, Number y){
++	    if ((x instanceof Double) || (y instanceof Double)) {
++		System.out.println("clojure.lang.DoubleOps.equiv(" +
++				   "Number " + x + "(" + (x.getClass()) + ")" +
++				   ", " +
++				   "Number " + y + "(" + (y.getClass()) + ")" +
++				   ") returning " +
++				   "(x.doubleValue() == y.doubleValue())" +
++				   " intermediate that is " +
++				   "(" + x.doubleValue() +
++				   " == " + y.doubleValue() +
++				   ")" +
++				   " which is " +
++				   (x.doubleValue() == y.doubleValue()));
++	    }
+ 		return x.doubleValue() == y.doubleValue();
+ 	}
+ 
+diff --git a/src/jvm/clojure/lang/Util.java b/src/jvm/clojure/lang/Util.java
+index ff0e3383..32db37c5 100644
+--- a/src/jvm/clojure/lang/Util.java
++++ b/src/jvm/clojure/lang/Util.java
+@@ -22,8 +22,39 @@ import java.lang.ref.ReferenceQueue;
+ 
+ public class Util{
+ static public boolean equiv(Object k1, Object k2){
+-	if(k1 == k2)
++    if (((k1 instanceof Number) && (k2 instanceof Number)) &&
++	((k1 instanceof Double) || (k2 instanceof Double))) {
++	System.out.println("clojure.lang.Util.equiv(" +
++			   "Object " + k1 + "(" + (k1.getClass()) + ")" +
++			   ", " +
++			   "Object " + k2 + "(" + (k2.getClass()) + ")" +
++			   ") returning ?");
++    }
++        if(k1 == k2) {
++	    /*
++	    if (k1 != null) {
++		if (k1 instanceof IPersistentSet) {
++		    System.out.println("Object-is-IPersistentSet equiv fast true for size " +
++				       ((IPersistentSet) k1).count());
++		} else if (k1 instanceof IPersistentMap) {
++		    System.out.println("Object-is-IPersistentMap equiv fast true for size " +
++				       ((IPersistentMap) k1).count());
++		} else if (k1 instanceof IPersistentVector) {
++		    System.out.println("Object-is-IPersistentVector equiv fast true for size " +
++				       ((IPersistentVector) k1).count());
++		}
++	    }
++	    */
++	    if (((k1 instanceof Number) && (k2 instanceof Number)) &&
++		((k1 instanceof Double) || (k2 instanceof Double))) {
++		System.out.println("clojure.lang.Util.equiv(" +
++				   "Object " + k1 + "(" + (k1.getClass()) + ")" +
++				   ", " +
++				   "Object " + k2 + "(" + (k2.getClass()) + ")" +
++				   ") returning true because k1==k2");
++	    }
+ 		return true;
++	}
+ 	if(k1 != null)
+ 		{
+ 		if(k1 instanceof Number && k2 instanceof Number)
+@@ -92,14 +123,20 @@ static public boolean equiv(long k1, Object k2){
+ }
+ 
+ static public boolean equiv(double k1, double k2){
++    System.out.println("equiv(double " + k1 + ", double " + k2 +
++		       ") returning " + (k1 == k2));
+ 	return k1 == k2;
+ }
+ 
+ static public boolean equiv(Object k1, double k2){
++    System.out.println("equiv(Object " + k1 + ", double " + k2 +
++		       ") returning " + equiv(k1, (Object)k2));
+ 	return equiv(k1, (Object)k2);
+ }
+ 
+ static public boolean equiv(double k1, Object k2){
++    System.out.println("equiv(double " + k1 + ", Object " + k2 +
++		       ") returning " + equiv((Object)k1, k2));
+ 	return equiv((Object)k1, k2);
+ }
+ 
