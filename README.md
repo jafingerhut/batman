@@ -12,6 +12,12 @@ value, so you can use them to store data.  Don't try this anywhere
 except at home:
 [sneaky_NaNs.clj](https://gist.github.com/gfredericks/af951e56680127f10eb8).
 
+And a related idea of how one might make a hashed dictionary/map with
+NaN's as keys, and "perform well".  It seems kind of crazy to me, but
+in a curiously seems-consistent kind of way:
+["Random Hash Functions"](https://research.swtch.com/randhash)
+by Russ Cox, 2012.
+
 
 ## Usage
 
